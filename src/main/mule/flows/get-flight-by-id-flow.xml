@@ -1,33 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"><flow name="get:\flights\(ID):american-flights-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="ID">attributes.uriParams.'ID'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd"><flow name="get:\flights\(ID):american-flights-api-config">
+		<logger level="INFO" doc:name="Start Log" doc:id="d87b2d09-2f24-4f1c-a065-e339d9f86a64" message="Flight by id flow has started"/>
+		<db:select doc:name="Select" doc:id="a107c775-3c6e-434d-be1d-2a4c6d08b7eb" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from kush.flights where id = :ID ]]></db:sql>
+			<db:input-parameters ><![CDATA[#[ID : attributes.uriParams.ID]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="39b78390-0d5d-40c7-ad1b-71e6d07ebdc7" >
+			<when expression="#[isEmpty(payload)]">
+				<ee:transform doc:name="Transform Message" doc:id="4dbaeada-5125-49cb-9b62-7ff597301cc2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-  ID: 1,
-  code: "GQ574",
-  price: 399,
-  departureDate: "2016/12/20",
-  origin: "ORD",
-  destination: "SFO",
-  emptySeats: 200,
-  plane: {
-    "type": "Boeing 747",
-    totalSeats: 400
-  }
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow></mule>
+	"message":"Flight not found"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="465d0cda-98d1-4f88-95cb-fed37e3935cb">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map (flight) -> {
+    id: flight.ID,
+    code: flight.CODE,
+    price: flight.PRICE,
+    departureDate: flight.DEPARTUREDATE,
+    origin: flight.ORIGIN,
+    destination: flight.DESTINATION,
+    emptySeats: flight.EMPTYSEATS,
+    plane: {
+        'type': flight.PLANETYPE,
+        totalSeats: flight.TOTALSEATS
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Payload Logger" doc:id="782c7e91-7f09-4727-9de3-d48c555f8c28" message="#[payload]" />
+			</otherwise>
+		</choice>
+
+    </flow>
+</mule>

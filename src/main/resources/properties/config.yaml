@@ -1,0 +1,6 @@
+db:
+  host: "localhost"
+  port: "1521"
+  user: "kush"
+  password : "kush123"
+  service: "orclpdb"
