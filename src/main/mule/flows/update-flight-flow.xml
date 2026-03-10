@@ -1,36 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd"><flow name="put:\flights\(ID):application\json:american-flights-api-config">
-		<logger level="INFO" doc:name="Start Log" doc:id="67d65d20-8e3e-4379-a1bc-6a52434a6e11" message="Update flow has started"/>
-		<db:update doc:name="Update" doc:id="964ac331-26c8-490b-8c78-ae06cc844176" config-ref="Database_Config">
-			<db:sql ><![CDATA[update kush.flights
-set price = :price,
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+
+	<flow name="put:\flights\(ID):application\json:american-flights-api-config">
+
+    <logger level="INFO" message="Update flight flow started"/>
+
+    <db:update config-ref="Database_Config">
+        <db:sql><![CDATA[UPDATE kush.flights
+SET code = :code,
+    price = :price,
     origin = :origin,
     destination = :destination,
+    departureDate = TO_DATE(:departureDate, 'YYYY-MM-DD'),
     emptySeats = :emptySeats
-where id = :ID]]></db:sql>
-			<db:input-parameters ><![CDATA[#[{
-            ID: attributes.uriParams.ID,
-            price: payload.price,
-            origin: payload.origin,
-            destination: payload.destination,
-            emptySeats: payload.emptySeats
-        }]]]></db:input-parameters>
-		</db:update>
-		<ee:transform doc:name="Transform Message" doc:id="583c9484-8a19-47db-b77f-cf6ae295d15d" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+WHERE id = :ID]]></db:sql>
+
+        <db:input-parameters><![CDATA[#[{
+    ID: attributes.uriParams.ID as Number,
+    code: payload.code,
+    price: payload.price,
+    origin: payload.origin,
+    destination: payload.destination,
+    departureDate: payload.departureDate,
+    emptySeats: payload.emptySeats
+}]]]></db:input-parameters>
+    </db:update>
+    <logger message="DB result: #[payload]" level="INFO"/>
+	<logger level="INFO" message="#[write(payload, 'application/json')]"/>
+
+	<set-variable variableName="rowsUpdated" value="#[payload.affectedRows default 0]" />
+
+	<logger message="Rows updated: #[vars.rowsUpdated]" level="INFO"/>
+
+    <choice>
+
+        <!-- If ID does not exist -->
+        <when expression="#[vars.rowsUpdated == 0]">
+            <ee:transform>
+                <ee:message>
+                    <ee:set-payload><![CDATA[
+%dw 2.0
 output application/json
 ---
 {
-	"message": "Flight updated successfully"
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+  message: "Flight not found"
+}
+]]></ee:set-payload>
+                </ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </when>
 
-    </flow></mule>
+        <!-- Success -->
+        <otherwise>
+            <ee:transform>
+                <ee:message>
+                    <ee:set-payload><![CDATA[
+%dw 2.0
+output application/json
+---
+{
+  message: "Flight updated successfully"
+}
+]]></ee:set-payload>
+                </ee:message>
+            </ee:transform>
+        </otherwise>
+
+    </choice>
+
+</flow>
+
+</mule>
