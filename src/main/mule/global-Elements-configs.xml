@@ -17,14 +17,13 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
 
     <!-- LOAD CONFIG FIRST -->
-    
-    <configuration-properties 
-        file="properties/config.yaml"/>
 
     <secure-properties:config
         name="Secure_Properties_Config"
-        file="properties/secure.yaml"
-        key="mySecretKey12345"/>
+        file="properties\config.yaml"
+        key="mySecretKey12345">
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
 
 
     <!-- THEN USE PROPERTIES -->
@@ -41,11 +40,11 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 
     <db:config name="Database_Config">
         <db:oracle-connection 
-            host="${db.host}" 
-            port="${db.port}" 
-            user="${db.user}" 
-            password="${db.password}" 
-            serviceName="${db.service}"/>
+            host="${secure::db.host}" 
+            port="${secure::db.port}" 
+            user="${secure::db.user}" 
+            password="${secure::db.password}" 
+            serviceName="${secure::db.service}"/>
     </db:config>
 
 </mule>
