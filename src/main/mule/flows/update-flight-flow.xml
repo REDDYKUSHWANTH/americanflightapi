@@ -34,12 +34,8 @@ WHERE id = :ID]]></db:sql>
     emptySeats: payload.emptySeats
 }]]]></db:input-parameters>
     </db:update>
-    <logger message="DB result: #[payload]" level="INFO"/>
-	<logger level="INFO" message="#[write(payload, 'application/json')]"/>
 
 	<set-variable variableName="rowsUpdated" value="#[payload.affectedRows default 0]" />
-
-	<logger message="Rows updated: #[vars.rowsUpdated]" level="INFO"/>
 
     <choice>
 

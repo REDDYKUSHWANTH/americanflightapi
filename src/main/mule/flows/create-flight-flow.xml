@@ -5,18 +5,7 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd"><sub-flow name="create-flight-flowSub_Flow" doc:id="4d0542a9-27a2-4db5-a2ee-d03bc24d1d1f" >
-		<ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "Flight added (but not really)"
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-	</sub-flow>
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<flow name="post:\flights:application\json:american-flights-api-config">
 		<logger level="INFO" doc:name="Start Log" doc:id="8adca12e-19b6-46f7-8d3d-4b5952563d6b" message="Create flight flow has started"/>
 		<ee:transform doc:name="Transform Message" doc:id="bae1b6cc-a415-4ca0-a74a-fb89f41d3dec" >

@@ -8,8 +8,19 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd"><flow name="get:\flights\(ID):american-flights-api-config">
 		<logger level="INFO" doc:name="Start Log" doc:id="d87b2d09-2f24-4f1c-a065-e339d9f86a64" message="Flight by id flow has started"/>
 		<db:select doc:name="Select" doc:id="a107c775-3c6e-434d-be1d-2a4c6d08b7eb" config-ref="Database_Config">
-			<db:sql ><![CDATA[select * from kush.flights where id = :ID ]]></db:sql>
-			<db:input-parameters ><![CDATA[#[ID : attributes.uriParams.ID]]]></db:input-parameters>
+			<db:sql ><![CDATA[SELECT
+ID,
+CODE,
+PRICE,
+DEPARTUREDATE,
+ORIGIN,
+DESTINATION,
+EMPTYSEATS,
+PLANETYPE,
+TOTALSEATS
+FROM kush.flights
+WHERE CODE = :CODE]]></db:sql>
+			<db:input-parameters ><![CDATA[#[CODE: attributes.uriParams.ID as String]]]></db:input-parameters>
 		</db:select>
 		<choice doc:name="Choice" doc:id="39b78390-0d5d-40c7-ad1b-71e6d07ebdc7" >
 			<when expression="#[isEmpty(payload)]">
@@ -33,7 +44,7 @@ output application/json
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-payload map (flight) -> {
+(payload map (flight) -> {
     id: flight.ID,
     code: flight.CODE,
     price: flight.PRICE,
@@ -45,7 +56,7 @@ payload map (flight) -> {
         'type': flight.PLANETYPE,
         totalSeats: flight.TOTALSEATS
     }
-}]]></ee:set-payload>
+})[0]]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 				<logger level="INFO" doc:name="Payload Logger" doc:id="782c7e91-7f09-4727-9de3-d48c555f8c28" message="#[payload]" />

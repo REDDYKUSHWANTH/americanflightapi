@@ -9,11 +9,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<flow name="get:\flights:american-flights-api-config">
 		<logger level="INFO" doc:name="Start Log" doc:id="c12a83a2-c85d-4e68-9248-962c86f687aa" message="Get flight flow has started"/>
-		<logger level="INFO" message="DB password: #[p('db.password')]"/>
 		<db:select doc:name="Select" doc:id="c2261c7f-5102-4af4-939e-576aaa379b34" config-ref="Database_Config">
 			<db:sql ><![CDATA[select * from kush.flights ]]></db:sql>
 		</db:select>
-		<logger level="INFO" message="DB Raw Result: #[payload]"/>
 		<ee:transform doc:name="Transform Message" doc:id="ed6cc32d-cd45-4db7-96ba-551ca4f6675f" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
